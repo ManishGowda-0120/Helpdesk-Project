@@ -54,12 +54,11 @@ public class SecurityConfig {
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/").permitAll()   // 👈 ADD THIS
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
-                        // Stats endpoint — Admin only
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/tickets/stats")
                         .hasRole("ADMIN")
-                        // Status update — Admin only
                         .requestMatchers(org.springframework.http.HttpMethod.PUT, "/api/tickets/*/status")
                         .hasRole("ADMIN")
                         .requestMatchers("/api/tickets/**").hasAnyRole("ADMIN", "EMPLOYEE")
