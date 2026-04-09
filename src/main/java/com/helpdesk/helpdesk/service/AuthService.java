@@ -24,15 +24,20 @@ public class AuthService {
 
     // ─── Register ────────────────────────────────────────────────────
     public String register(RegisterRequestDTO dto) {
-        // Check if username already exists
         if (userRepository.findByUsername(dto.getUsername()).isPresent()) {
             return "Error: Username already exists";
         }
 
+        // ✅ FIX: normalize role — accept both "ADMIN" and "ROLE_ADMIN"
+        String roleInput = dto.getRole().toUpperCase();
+        if (!roleInput.startsWith("ROLE_")) {
+            roleInput = "ROLE_" + roleInput;
+        }
+
         User user = new User();
         user.setUsername(dto.getUsername());
-        user.setPassword(passwordEncoder.encode(dto.getPassword())); // ✅ encrypted
-        user.setRole(Role.valueOf(dto.getRole())); // ROLE_ADMIN or ROLE_EMPLOYEE
+        user.setPassword(passwordEncoder.encode(dto.getPassword()));
+        user.setRole(Role.valueOf(roleInput));
 
         userRepository.save(user);
         return "User registered successfully";
@@ -43,12 +48,10 @@ public class AuthService {
         User user = userRepository.findByUsername(dto.getUsername())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        // Check password
         if (!passwordEncoder.matches(dto.getPassword(), user.getPassword())) {
             throw new RuntimeException("Invalid password");
         }
 
-        // Generate and return JWT token
         return jwtUtil.generateToken(user.getUsername(), user.getRole().name());
     }
 }

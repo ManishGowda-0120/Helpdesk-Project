@@ -29,24 +29,21 @@ public class JwtFilter extends OncePerRequestFilter {
 
         String authHeader = request.getHeader("Authorization");
 
-        System.out.println("🔐 Auth Header: " + authHeader); // debug
-
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             String token = authHeader.substring(7);
-
-            System.out.println("🔑 Token found, validating..."); // debug
 
             if (jwtUtil.isTokenValid(token)) {
                 String username = jwtUtil.extractUsername(token);
                 String role     = jwtUtil.extractRole(token);
 
-                System.out.println("✅ Valid token for user: " + username + " role: " + role); // debug
+                // ✅ FIX: ensure authority always has ROLE_ prefix
+                String authority = role.startsWith("ROLE_") ? role : "ROLE_" + role;
 
                 UsernamePasswordAuthenticationToken authentication =
                         new UsernamePasswordAuthenticationToken(
                                 username,
                                 null,
-                                List.of(new SimpleGrantedAuthority(role))
+                                List.of(new SimpleGrantedAuthority(authority))
                         );
 
                 authentication.setDetails(
@@ -54,11 +51,7 @@ public class JwtFilter extends OncePerRequestFilter {
                 );
 
                 SecurityContextHolder.getContext().setAuthentication(authentication);
-            } else {
-                System.out.println("❌ Token is invalid!"); // debug
             }
-        } else {
-            System.out.println("⚠️ No Bearer token found in request"); // debug
         }
 
         filterChain.doFilter(request, response);
