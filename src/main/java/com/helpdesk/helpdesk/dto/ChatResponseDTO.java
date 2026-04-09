@@ -2,33 +2,24 @@ package com.helpdesk.helpdesk.dto;
 
 public class ChatResponseDTO {
 
-    private String message;
-    private Object data;
+    private String reply;
+    private Object data; // optional - for tool call results
 
-    public ChatResponseDTO() {}
-
-    public ChatResponseDTO(String message) {
-        this.message = message;
+    // ✅ Constructor for plain text reply
+    public ChatResponseDTO(String reply) {
+        this.reply = reply;
+        this.data = null;
     }
 
-    public ChatResponseDTO(String message, Object data) {
-        this.message = message;
+    // ✅ Constructor for tool call result
+    public ChatResponseDTO(String reply, Object data) {
+        this.reply = reply;
         this.data = data;
     }
 
-    public String getMessage() {
-        return message;
-    }
+    public String getReply() { return reply; }
+    public void setReply(String reply) { this.reply = reply; }
 
-    public Object getData() {
-        return data;
-    }
-
-    public void setMessage(String message) {
-        this.message = message;
-    }
-
-    public void setData(Object data) {
-        this.data = data;
-    }
+    public Object getData() { return data; }
+    public void setData(Object data) { this.data = data; }
 }

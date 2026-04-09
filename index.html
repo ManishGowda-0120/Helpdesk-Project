@@ -453,7 +453,12 @@ async function sendChat(){
     });
     const data=await res.json();
     document.getElementById(lid)?.remove();
+    if(data.data && data.data.response){
+    addChatBubble('✅ Ticket created! Here is your solution:','bot');
+    addChatBubble(data.data.response,'bot');
+}else{
     addChatBubble(data.reply||'No response','bot');
+}
   }catch(e){
     document.getElementById(lid)?.remove();
     addChatBubble('⚠️ Connection error.','bot');
@@ -481,7 +486,7 @@ async function loadDashboard(){
 }
 
 function renderDashboard(stats){
-  document.getElementById('statTotal').textContent=stats.totalTickets??0;
+  document.getElementById('statTotal').textContent = stats.total ?? 0;
   document.getElementById('statOpen').textContent=stats.byStatus?.OPEN??0;
   document.getElementById('statInProgress').textContent=stats.byStatus?.IN_PROGRESS??0;
   document.getElementById('statResolved').textContent=stats.byStatus?.RESOLVED??0;

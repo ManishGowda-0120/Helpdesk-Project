@@ -8,7 +8,9 @@ import com.helpdesk.helpdesk.repository.TicketRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -39,9 +41,9 @@ public class TicketService {
         return ticketRepository.findAll();
     }
 
-    // 3. Get tickets by employee username (Employee)
-    public List<Ticket> getTicketsByEmployee(String username) {
-        return ticketRepository.findByEmployeeName(username);
+    // 3. Get tickets by employee name (Employee)
+    public List<Ticket> getTicketsByEmployee(String employeeName) {
+        return ticketRepository.findByEmployeeName(employeeName);
     }
 
     // 4. Get Ticket by ID
@@ -56,7 +58,7 @@ public class TicketService {
                 .orElseThrow(() -> new TicketNotFoundException("Ticket not found with id: " + id));
         existing.setEmployeeName(dto.getEmployeeName());
         existing.setIssue(dto.getIssue());
-        existing.setStatus(dto.getStatus() != null ? dto.getStatus() : existing.getStatus());
+        existing.setStatus(dto.getStatus());
         existing.setCategory(aiService.suggestCategory(dto.getIssue()));
         existing.setResponse(aiService.generateResponse(dto.getIssue()));
         existing.setPriority(aiService.suggestPriority(dto.getIssue()));
@@ -72,7 +74,7 @@ public class TicketService {
         ticketRepository.delete(existing);
     }
 
-    // 7. Update Status (OPEN → IN_PROGRESS → RESOLVED)
+    // 7. Update Status
     public Ticket updateStatus(Long id, String newStatus) {
         Ticket ticket = ticketRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Ticket not found"));
@@ -82,44 +84,57 @@ public class TicketService {
         } else if (current.equals("IN_PROGRESS") && newStatus.equals("RESOLVED")) {
             ticket.setStatus(newStatus);
         } else {
-            throw new RuntimeException("Invalid status transition: " + current + " → " + newStatus);
+            throw new RuntimeException("Invalid transition: " + current + " → " + newStatus);
         }
         return ticketRepository.save(ticket);
     }
 
-    // ── FIX #3: Admin Dashboard Stats ─────────────────────────────────
+    // 8. ✅ Dashboard Stats - FIXED null handling
     public Map<String, Object> getDashboardStats() {
         List<Ticket> all = ticketRepository.findAll();
-        Map<String, Object> stats = new LinkedHashMap<>();
 
-        stats.put("totalTickets", all.size());
+        Map<String, Object> stats = new HashMap<>();
+
+        // Total
+        stats.put("total", all.size());
 
         // By Status
         Map<String, Long> byStatus = all.stream()
+                .filter(t -> t.getStatus() != null)          // ✅ skip nulls
                 .collect(Collectors.groupingBy(Ticket::getStatus, Collectors.counting()));
         stats.put("byStatus", byStatus);
+        stats.put("open",       byStatus.getOrDefault("OPEN", 0L));
+        stats.put("inProgress", byStatus.getOrDefault("IN_PROGRESS", 0L));
+        stats.put("resolved",   byStatus.getOrDefault("RESOLVED", 0L));
 
-        // By Category
+        // By Category - ✅ replace null with "Unknown"
         Map<String, Long> byCategory = all.stream()
-                .filter(t -> t.getCategory() != null)
-                .collect(Collectors.groupingBy(Ticket::getCategory, Collectors.counting()));
+                .collect(Collectors.groupingBy(
+                        t -> t.getCategory() != null ? t.getCategory() : "Unknown",
+                        Collectors.counting()
+                ));
         stats.put("byCategory", byCategory);
 
-        // By Priority
+        // By Priority - ✅ replace null with "Unknown"
         Map<String, Long> byPriority = all.stream()
-                .filter(t -> t.getPriority() != null)
-                .collect(Collectors.groupingBy(Ticket::getPriority, Collectors.counting()));
+                .collect(Collectors.groupingBy(
+                        t -> t.getPriority() != null ? t.getPriority() : "Unknown",
+                        Collectors.counting()
+                ));
         stats.put("byPriority", byPriority);
 
-        // Per Employee (for admin)
+        // By Employee - ✅ replace null with "Unknown"
         Map<String, Long> byEmployee = all.stream()
-                .collect(Collectors.groupingBy(Ticket::getEmployeeName, Collectors.counting()));
+                .collect(Collectors.groupingBy(
+                        t -> t.getEmployeeName() != null ? t.getEmployeeName() : "Unknown",
+                        Collectors.counting()
+                ));
         stats.put("byEmployee", byEmployee);
 
         return stats;
     }
 
-    // ── Mapping helpers ────────────────────────────────────────────────
+    // ===== MAPPING =====
     private Ticket mapToEntity(TicketRequestDTO dto) {
         Ticket ticket = new Ticket();
         ticket.setEmployeeName(dto.getEmployeeName());
