@@ -25,17 +25,16 @@ public class AuthService {
     // ─── Register ────────────────────────────────────────────────────
     public String register(RegisterRequestDTO dto) {
         if (userRepository.findByUsername(dto.getUsername()).isPresent()) {
-            return "Error: Username already exists";
+            throw new RuntimeException("Username already exists");
         }
 
-        // ✅ FIX: normalize role — accept both "ADMIN" and "ROLE_ADMIN"
-        String roleInput = dto.getRole().toUpperCase();
+        String roleInput = dto.getRole().trim().toUpperCase();
         if (!roleInput.startsWith("ROLE_")) {
             roleInput = "ROLE_" + roleInput;
         }
 
         User user = new User();
-        user.setUsername(dto.getUsername());
+        user.setUsername(dto.getUsername().trim());
         user.setPassword(passwordEncoder.encode(dto.getPassword()));
         user.setRole(Role.valueOf(roleInput));
 
@@ -45,7 +44,9 @@ public class AuthService {
 
     // ─── Login ───────────────────────────────────────────────────────
     public String login(LoginRequestDTO dto) {
-        User user = userRepository.findByUsername(dto.getUsername())
+        String username = dto.getUsername().trim();
+
+        User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         if (!passwordEncoder.matches(dto.getPassword(), user.getPassword())) {
