@@ -49,14 +49,15 @@ public class TicketService {
     // 4. Get Ticket by ID
     public Ticket getTicketById(Long id) {
         return ticketRepository.findById(id)
-                .orElseThrow(() -> new TicketNotFoundException("Ticket not found with id: " + id));
+                .orElseThrow(() -> new TicketNotFoundException("Ticket not found: " + id));
     }
 
     // 5. Update Ticket
     public TicketResponseDTO updateTicket(Long id, TicketRequestDTO dto) {
         Ticket existing = ticketRepository.findById(id)
-                .orElseThrow(() -> new TicketNotFoundException("Ticket not found with id: " + id));
+                .orElseThrow(() -> new TicketNotFoundException("Ticket not found: " + id));
         existing.setEmployeeName(dto.getEmployeeName());
+        existing.setEmployeeEmail(dto.getEmployeeEmail());
         existing.setIssue(dto.getIssue());
         existing.setStatus(dto.getStatus());
         existing.setCategory(aiService.suggestCategory(dto.getIssue()));
@@ -70,7 +71,7 @@ public class TicketService {
     // 6. Delete Ticket
     public void deleteTicket(Long id) {
         Ticket existing = ticketRepository.findById(id)
-                .orElseThrow(() -> new TicketNotFoundException("Ticket not found with id: " + id));
+                .orElseThrow(() -> new TicketNotFoundException("Ticket not found: " + id));
         ticketRepository.delete(existing);
     }
 
@@ -89,48 +90,33 @@ public class TicketService {
         return ticketRepository.save(ticket);
     }
 
-    // 8. ✅ Dashboard Stats - FIXED null handling
+    // 8. Dashboard Stats
     public Map<String, Object> getDashboardStats() {
         List<Ticket> all = ticketRepository.findAll();
-
         Map<String, Object> stats = new HashMap<>();
-
-        // Total
         stats.put("total", all.size());
-
-        // By Status
         Map<String, Long> byStatus = all.stream()
-                .filter(t -> t.getStatus() != null)          // ✅ skip nulls
+                .filter(t -> t.getStatus() != null)
                 .collect(Collectors.groupingBy(Ticket::getStatus, Collectors.counting()));
         stats.put("byStatus", byStatus);
         stats.put("open",       byStatus.getOrDefault("OPEN", 0L));
         stats.put("inProgress", byStatus.getOrDefault("IN_PROGRESS", 0L));
         stats.put("resolved",   byStatus.getOrDefault("RESOLVED", 0L));
-
-        // By Category - ✅ replace null with "Unknown"
         Map<String, Long> byCategory = all.stream()
                 .collect(Collectors.groupingBy(
                         t -> t.getCategory() != null ? t.getCategory() : "Unknown",
-                        Collectors.counting()
-                ));
+                        Collectors.counting()));
         stats.put("byCategory", byCategory);
-
-        // By Priority - ✅ replace null with "Unknown"
         Map<String, Long> byPriority = all.stream()
                 .collect(Collectors.groupingBy(
                         t -> t.getPriority() != null ? t.getPriority() : "Unknown",
-                        Collectors.counting()
-                ));
+                        Collectors.counting()));
         stats.put("byPriority", byPriority);
-
-        // By Employee - ✅ replace null with "Unknown"
         Map<String, Long> byEmployee = all.stream()
                 .collect(Collectors.groupingBy(
                         t -> t.getEmployeeName() != null ? t.getEmployeeName() : "Unknown",
-                        Collectors.counting()
-                ));
+                        Collectors.counting()));
         stats.put("byEmployee", byEmployee);
-
         return stats;
     }
 
@@ -138,6 +124,7 @@ public class TicketService {
     private Ticket mapToEntity(TicketRequestDTO dto) {
         Ticket ticket = new Ticket();
         ticket.setEmployeeName(dto.getEmployeeName());
+        ticket.setEmployeeEmail(dto.getEmployeeEmail()); // ✅
         ticket.setIssue(dto.getIssue());
         ticket.setStatus("OPEN");
         return ticket;

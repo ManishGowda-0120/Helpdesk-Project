@@ -141,6 +141,8 @@
           </div>
         </div>
         <label class="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">Describe Your Issue *</label>
+          <input id="empEmail" type="email" placeholder="Your Email (notification will be sent here)"
+                 class="w-full border rounded-xl px-4 py-3 mb-3 focus:outline-none focus:ring-2 focus:ring-blue-400"/>
         <textarea id="issueText" rows="5" placeholder="e.g. My laptop screen is flickering and sometimes goes black..."
           class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm resize-none transition mb-5"></textarea>
         <button onclick="createTicket()" id="createBtn" class="w-full btn-p py-3.5 rounded-xl font-semibold transition text-sm">
@@ -410,21 +412,28 @@ async function updateStatus(id,status){
 
 // ── CREATE ────────────────────────────────────
 async function createTicket(){
-  const issue=document.getElementById('issueText').value.trim();
+  const issue = document.getElementById('issueText').value.trim();
+  const employeeEmail = document.getElementById('empEmail').value.trim();
   if(!issue) return showCreateMsg('Please describe your issue','red');
-  const btn=document.getElementById('createBtn');
+  if(!employeeEmail) return showCreateMsg('Please enter your email','red');
+  const btn = document.getElementById('createBtn');
   btn.textContent='🤖 AI is processing...'; btn.disabled=true;
   showCreateMsg('Sending to AI — this may take a few seconds...','indigo');
   try{
-    // FIX #4: no employeeName sent — backend reads it from JWT
-    const res=await fetch(`${API}/api/tickets`,{
+    const res = await fetch(`${API}/api/tickets`,{
       method:'POST',
       headers:{'Authorization':`Bearer ${token}`,'Content-Type':'application/json'},
-      body:JSON.stringify({issue,status:'OPEN'})
+      body: JSON.stringify({
+        issue,
+        employeeEmail,
+        employeeName: userName, // ✅ use logged-in username from JWT
+        status:'OPEN'
+      })
     });
     if(res.ok){
       showCreateMsg('✅ Ticket created! AI has responded.','green');
       document.getElementById('issueText').value='';
+      document.getElementById('empEmail').value='';
       setTimeout(()=>{showPage('tickets');loadTickets();},1800);
     } else {
       const err=await res.text();
