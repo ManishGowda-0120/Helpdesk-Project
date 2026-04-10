@@ -3,224 +3,481 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>IT Helpdesk</title>
+  <title>IT Helpdesk — AI Powered</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
   <style>
-    :root { --brand:#4f46e5; --brand-dark:#3730a3; --brand-light:#eef2ff; }
-    body { font-family:'Inter',system-ui,sans-serif; }
-    .status-OPEN        { background:#fee2e2; color:#b91c1c; }
-    .status-IN_PROGRESS { background:#fef9c3; color:#92400e; }
-    .status-RESOLVED    { background:#dcfce7; color:#15803d; }
-    .priority-HIGH      { background:#fee2e2; color:#b91c1c; }
-    .priority-MEDIUM    { background:#fef9c3; color:#92400e; }
-    .priority-LOW       { background:#dcfce7; color:#15803d; }
-    .fade { animation:fadeIn .3s ease; }
-    @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
-    .nav-btn { transition:all .15s; }
-    .nav-btn.active { background:rgba(255,255,255,.18); border-radius:.5rem; }
-    .card { background:#fff; border-radius:1rem; box-shadow:0 1px 6px rgba(0,0,0,.07); transition:box-shadow .2s; }
-    .card:hover { box-shadow:0 4px 18px rgba(0,0,0,.12); }
-    input:focus,textarea:focus,select:focus { outline:none; box-shadow:0 0 0 3px rgba(79,70,229,.25); border-color:#4f46e5; }
-    ::-webkit-scrollbar { width:6px; }
-    ::-webkit-scrollbar-track { background:#f1f5f9; }
-    ::-webkit-scrollbar-thumb { background:#c7d2fe; border-radius:3px; }
-    .skeleton { background:linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%); background-size:200% 100%; animation:shimmer 1.4s infinite; }
+    :root {
+      --bg: #080b14;
+      --surface: #0d1220;
+      --surface2: #131929;
+      --border: rgba(255,255,255,0.07);
+      --accent: #6366f1;
+      --accent2: #8b5cf6;
+      --accent3: #06b6d4;
+      --text: #e2e8f0;
+      --muted: #64748b;
+      --green: #10b981;
+      --red: #ef4444;
+      --amber: #f59e0b;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    h1,h2,h3,.font-display { font-family: 'Syne', sans-serif; }
+
+    /* Background mesh */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 20% 10%, rgba(99,102,241,0.12) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 50% at 80% 80%, rgba(139,92,246,0.10) 0%, transparent 60%),
+        radial-gradient(ellipse 40% 40% at 50% 50%, rgba(6,182,212,0.05) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Glass card */
+    .glass {
+      background: rgba(13,18,32,0.85);
+      border: 1px solid var(--border);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-radius: 1.25rem;
+    }
+    .glass-light {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      border-radius: 1rem;
+    }
+
+    /* Glow button */
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #fff;
+      border: none;
+      border-radius: 0.875rem;
+      font-family: 'Syne', sans-serif;
+      font-weight: 600;
+      font-size: 0.875rem;
+      padding: 0.875rem 1.5rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 0 20px rgba(99,102,241,0.3);
+      width: 100%;
+    }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 0 30px rgba(99,102,241,0.5); }
+    .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+    .btn-green {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: #fff;
+      border: none;
+      border-radius: 0.75rem;
+      font-weight: 600;
+      font-size: 0.8rem;
+      padding: 0.625rem 1.25rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 0 15px rgba(16,185,129,0.2);
+    }
+    .btn-green:hover { box-shadow: 0 0 25px rgba(16,185,129,0.4); transform: translateY(-1px); }
+
+    .btn-amber {
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      color: #fff;
+      border: none;
+      border-radius: 0.75rem;
+      font-weight: 600;
+      font-size: 0.8rem;
+      padding: 0.625rem 1.25rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-amber:hover { transform: translateY(-1px); }
+
+    /* Input */
+    .input {
+      width: 100%;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      border-radius: 0.875rem;
+      padding: 0.875rem 1.125rem;
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.875rem;
+      transition: all 0.2s;
+      outline: none;
+    }
+    .input::placeholder { color: var(--muted); }
+    .input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(99,102,241,0.15); }
+
+    select.input { cursor: pointer; }
+    select.input option { background: #131929; color: var(--text); }
+
+    /* Status & Priority badges */
+    .badge {
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      padding: 0.25rem 0.625rem;
+      border-radius: 999px;
+    }
+    .status-OPEN        { background: rgba(239,68,68,0.15); color: #fca5a5; border: 1px solid rgba(239,68,68,0.3); }
+    .status-IN_PROGRESS { background: rgba(245,158,11,0.15); color: #fcd34d; border: 1px solid rgba(245,158,11,0.3); }
+    .status-RESOLVED    { background: rgba(16,185,129,0.15); color: #6ee7b7; border: 1px solid rgba(16,185,129,0.3); }
+    .priority-HIGH      { background: rgba(239,68,68,0.15); color: #fca5a5; border: 1px solid rgba(239,68,68,0.3); }
+    .priority-MEDIUM    { background: rgba(245,158,11,0.15); color: #fcd34d; border: 1px solid rgba(245,158,11,0.3); }
+    .priority-LOW       { background: rgba(16,185,129,0.15); color: #6ee7b7; border: 1px solid rgba(16,185,129,0.3); }
+
+    /* Animations */
+    .fade { animation: fadeUp 0.35s cubic-bezier(0.16,1,0.3,1) both; }
+    @keyframes fadeUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+
+    .fade-in { animation: fadeIn 0.25s ease both; }
+    @keyframes fadeIn { from{opacity:0} to{opacity:1} }
+
+    /* Ticket card hover */
+    .ticket-card {
+      background: rgba(13,18,32,0.8);
+      border: 1px solid var(--border);
+      border-radius: 1.125rem;
+      cursor: pointer;
+      transition: all 0.25s cubic-bezier(0.16,1,0.3,1);
+      position: relative;
+      overflow: hidden;
+    }
+    .ticket-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    .ticket-card:hover { transform: translateY(-3px); border-color: rgba(99,102,241,0.3); box-shadow: 0 12px 40px rgba(0,0,0,0.4); }
+    .ticket-card:hover::before { opacity: 1; }
+
+    /* Navbar */
+    .navbar {
+      background: rgba(8,11,20,0.9);
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+    }
+    .nav-link {
+      color: var(--muted);
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 0.5rem 0.875rem;
+      border-radius: 0.625rem;
+      cursor: pointer;
+      transition: all 0.15s;
+      font-family: 'Syne', sans-serif;
+      letter-spacing: 0.02em;
+      border: none;
+      background: none;
+    }
+    .nav-link:hover { color: var(--text); background: rgba(255,255,255,0.06); }
+    .nav-link.active { color: #fff; background: rgba(99,102,241,0.2); border: 1px solid rgba(99,102,241,0.3); }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(99,102,241,0.3); border-radius: 3px; }
+
+    /* Skeleton */
+    .skeleton {
+      background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.04) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      border-radius: 1.125rem;
+    }
     @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
-    .btn-p { background:#4f46e5; color:#fff; }
-    .btn-p:hover { background:#3730a3; }
-    .btn-g { background:#16a34a; color:#fff; }
-    .btn-g:hover { background:#15803d; }
+
+    /* Auth page grid bg */
+    .auth-grid {
+      background-image: linear-gradient(rgba(99,102,241,0.04) 1px, transparent 1px),
+                        linear-gradient(90deg, rgba(99,102,241,0.04) 1px, transparent 1px);
+      background-size: 40px 40px;
+    }
+
+    /* Tab */
+    .tab-active { background: rgba(99,102,241,0.2); color: #a5b4fc; border-color: rgba(99,102,241,0.4) !important; }
+    .tab-inactive { color: var(--muted); }
+
+    /* Chat bubbles */
+    .bubble-user { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; border-radius: 1.25rem 1.25rem 0.25rem 1.25rem; }
+    .bubble-bot { background: var(--surface2); color: var(--text); border: 1px solid var(--border); border-radius: 1.25rem 1.25rem 1.25rem 0.25rem; }
+
+    /* Stat card glow */
+    .stat-glow { box-shadow: 0 0 30px rgba(99,102,241,0.15); }
+
+    /* Label */
+    .label { font-size: 0.7rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.375rem; display: block; }
+
+    /* Modal overlay */
+    .modal-overlay { background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); }
+
+    /* Divider */
+    .divider { border: none; border-top: 1px solid var(--border); }
+
+    /* Accent text */
+    .text-accent { color: var(--accent); }
+    .text-accent2 { color: var(--accent2); }
+    .text-accent3 { color: var(--accent3); }
   </style>
 </head>
-<body class="bg-slate-100 min-h-screen">
+<body>
 
-<!-- AUTH PAGE -->
-<div id="authPage" class="flex items-center justify-center min-h-screen p-4">
-  <div class="card w-full max-w-md p-8 fade">
-    <div class="text-center mb-7">
-      <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-3" style="background:var(--brand-light)">
-        <svg class="w-9 h-9" fill="none" viewBox="0 0 24 24" stroke="#4f46e5" stroke-width="1.7">
+<!-- ══════════════════════════════════════════════════
+     AUTH PAGE
+══════════════════════════════════════════════════ -->
+<div id="authPage" class="auth-grid flex items-center justify-center min-h-screen p-4" style="position:relative;z-index:1;">
+  <div class="glass w-full max-w-sm p-8 fade" style="position:relative;">
+    <!-- Logo -->
+    <div class="text-center mb-8">
+      <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl mb-4" style="background:linear-gradient(135deg,rgba(99,102,241,0.2),rgba(139,92,246,0.2));border:1px solid rgba(99,102,241,0.3);">
+        <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="url(#g1)" stroke-width="1.8">
+          <defs><linearGradient id="g1" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#6366f1"/><stop offset="100%" stop-color="#8b5cf6"/></linearGradient></defs>
           <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
         </svg>
       </div>
-      <h1 class="text-2xl font-bold text-gray-900">IT Helpdesk</h1>
-      <p class="text-gray-400 text-sm mt-1">AI-Powered Support System</p>
+      <h1 class="font-display text-2xl font-800 text-white mb-1">IT Helpdesk</h1>
+      <p style="color:var(--muted);font-size:0.8rem;">AI-Powered Support System</p>
     </div>
-    <div class="flex mb-6 bg-slate-100 rounded-xl p-1 gap-1">
+
+    <!-- Tabs -->
+    <div class="flex gap-2 mb-6 p-1 rounded-xl" style="background:rgba(255,255,255,0.04);border:1px solid var(--border);">
       <button onclick="showTab('login')" id="loginTab"
-        class="flex-1 py-2.5 rounded-lg text-sm font-semibold transition bg-white shadow text-indigo-600">Sign In</button>
+        class="flex-1 py-2 rounded-lg text-sm font-semibold transition tab-active border border-transparent font-display">
+        Sign In
+      </button>
       <button onclick="showTab('register')" id="registerTab"
-        class="flex-1 py-2.5 rounded-lg text-sm font-semibold transition text-gray-400">Register</button>
+        class="flex-1 py-2 rounded-lg text-sm font-semibold transition tab-inactive border border-transparent font-display">
+        Register
+      </button>
     </div>
-    <div id="loginForm">
-      <label class="block text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">Username</label>
-      <input id="loginUsername" type="text" placeholder="Enter your username"
-        class="w-full border border-gray-200 rounded-xl px-4 py-3 mb-4 text-sm transition"/>
-      <label class="block text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">Password</label>
-      <input id="loginPassword" type="password" placeholder="Enter your password"
-        class="w-full border border-gray-200 rounded-xl px-4 py-3 mb-5 text-sm transition"
-        onkeydown="if(event.key==='Enter') login()"/>
-      <button onclick="login()" id="loginBtn" class="w-full btn-p py-3 rounded-xl font-semibold transition text-sm">Sign In →</button>
+
+    <!-- Login -->
+    <div id="loginForm" class="space-y-4">
+      <div>
+        <span class="label">Username</span>
+        <input id="loginUsername" type="text" placeholder="Enter username" class="input"/>
+      </div>
+      <div>
+        <span class="label">Password</span>
+        <input id="loginPassword" type="password" placeholder="Enter password" class="input"
+          onkeydown="if(event.key==='Enter') login()"/>
+      </div>
+      <button onclick="login()" id="loginBtn" class="btn-primary" style="margin-top:0.5rem;">Sign In →</button>
     </div>
-    <div id="registerForm" class="hidden">
-      <label class="block text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">Username</label>
-      <input id="regUsername" type="text" placeholder="Choose a username"
-        class="w-full border border-gray-200 rounded-xl px-4 py-3 mb-4 text-sm transition"/>
-      <label class="block text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">Password</label>
-      <input id="regPassword" type="password" placeholder="Choose a password"
-        class="w-full border border-gray-200 rounded-xl px-4 py-3 mb-4 text-sm transition"/>
-      <label class="block text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">Role</label>
-      <select id="regRole" class="w-full border border-gray-200 rounded-xl px-4 py-3 mb-5 text-sm transition bg-white">
-        <option value="ROLE_EMPLOYEE">Employee</option>
-        <option value="ROLE_ADMIN">Admin</option>
-      </select>
-      <button onclick="register()" class="w-full btn-g py-3 rounded-xl font-semibold transition text-sm">Create Account →</button>
+
+    <!-- Register -->
+    <div id="registerForm" class="hidden space-y-4">
+      <div>
+        <span class="label">Username</span>
+        <input id="regUsername" type="text" placeholder="Choose a username" class="input"/>
+      </div>
+      <div>
+        <span class="label">Password</span>
+        <input id="regPassword" type="password" placeholder="Choose a password" class="input"/>
+      </div>
+      <div>
+        <span class="label">Role</span>
+        <select id="regRole" class="input">
+          <option value="ROLE_EMPLOYEE">Employee</option>
+          <option value="ROLE_ADMIN">Admin</option>
+        </select>
+      </div>
+      <button onclick="register()" class="btn-primary" style="background:linear-gradient(135deg,#10b981,#059669);box-shadow:0 0 20px rgba(16,185,129,0.3);margin-top:0.5rem;">
+        Create Account →
+      </button>
     </div>
+
     <div id="authMsg" class="mt-4 text-center text-sm"></div>
   </div>
 </div>
 
-<!-- MAIN APP -->
-<div id="mainApp" class="hidden min-h-screen flex flex-col">
-  <nav class="sticky top-0 z-50 px-6 py-3 flex justify-between items-center shadow-md" style="background:#4f46e5">
+<!-- ══════════════════════════════════════════════════
+     MAIN APP
+══════════════════════════════════════════════════ -->
+<div id="mainApp" class="hidden min-h-screen flex flex-col" style="position:relative;z-index:1;">
+
+  <!-- Navbar -->
+  <nav class="navbar sticky top-0 z-50 px-6 py-3 flex justify-between items-center">
     <div class="flex items-center gap-3">
-      <div class="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
-        <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+      <div class="w-8 h-8 rounded-xl flex items-center justify-center" style="background:linear-gradient(135deg,var(--accent),var(--accent2));">
+        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#fff" stroke-width="2">
           <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
         </svg>
       </div>
-      <span class="font-bold text-white text-base">IT Helpdesk</span>
+      <span class="font-display font-700 text-white text-sm tracking-wide">IT Helpdesk</span>
+      <span style="width:1px;height:16px;background:var(--border);display:inline-block;margin:0 4px;"></span>
+      <span style="font-size:0.65rem;color:var(--accent3);font-weight:600;letter-spacing:0.08em;text-transform:uppercase;">AI Powered</span>
     </div>
     <div class="flex items-center gap-1">
-      <button onclick="showPage('tickets')" id="navTickets" class="nav-btn text-white/80 hover:text-white text-sm px-3 py-2 font-medium">🎫 Tickets</button>
-      <button onclick="showPage('create')"  id="navCreate"  class="nav-btn text-white/80 hover:text-white text-sm px-3 py-2 font-medium">+ New</button>
-      <button onclick="showPage('chat')"    id="navChat"    class="nav-btn text-white/80 hover:text-white text-sm px-3 py-2 font-medium">💬 Chat</button>
-      <button onclick="showPage('dashboard')" id="navDashboard" class="nav-btn text-white/80 hover:text-white text-sm px-3 py-2 font-medium hidden">📊 Dashboard</button>
-      <div class="w-px h-5 bg-white/20 mx-1"></div>
-      <span id="navUser" class="text-xs bg-white/15 text-white px-3 py-1.5 rounded-full font-medium"></span>
-      <button onclick="logout()" class="ml-2 text-xs bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded-lg font-medium transition">Logout</button>
+      <button onclick="showPage('tickets')" id="navTickets" class="nav-link active">🎫 Tickets</button>
+      <button onclick="showPage('create')"  id="navCreate"  class="nav-link">+ New</button>
+      <button onclick="showPage('chat')"    id="navChat"    class="nav-link">💬 Chat</button>
+      <button onclick="showPage('dashboard')" id="navDashboard" class="nav-link hidden">📊 Dashboard</button>
+      <div style="width:1px;height:20px;background:var(--border);margin:0 8px;"></div>
+      <span id="navUser" class="text-xs px-3 py-1.5 rounded-full font-medium" style="background:rgba(99,102,241,0.15);color:#a5b4fc;border:1px solid rgba(99,102,241,0.25);font-family:'Syne',sans-serif;"></span>
+      <button onclick="logout()" class="nav-link ml-1" style="color:#fca5a5;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);">Logout</button>
     </div>
   </nav>
 
-  <div class="flex-1 p-6 max-w-6xl mx-auto w-full">
+  <div class="flex-1 p-6 mx-auto w-full" style="max-width:1200px;">
 
-    <!-- TICKETS PAGE -->
+    <!-- ── TICKETS PAGE ── -->
     <div id="ticketsPage" class="fade">
-      <div class="flex justify-between items-center mb-5">
+      <div class="flex justify-between items-center mb-6">
         <div>
-          <h2 class="text-xl font-bold text-gray-800">🎫 Tickets</h2>
-          <p id="ticketSubtitle" class="text-sm text-gray-400 mt-0.5"></p>
+          <h2 class="font-display text-xl font-700 text-white">Tickets</h2>
+          <p id="ticketSubtitle" class="text-xs mt-1" style="color:var(--muted);"></p>
         </div>
         <div class="flex gap-2">
-          <select id="statusFilter" onchange="applyFilter()"
-            class="text-sm border border-gray-200 rounded-xl px-3 py-2 bg-white text-gray-600 transition">
+          <select id="statusFilter" onchange="applyFilter()" class="input" style="width:auto;font-size:0.8rem;padding:0.5rem 0.875rem;">
             <option value="">All Statuses</option>
             <option value="OPEN">Open</option>
             <option value="IN_PROGRESS">In Progress</option>
             <option value="RESOLVED">Resolved</option>
           </select>
-          <button onclick="loadTickets()" class="text-sm bg-indigo-50 text-indigo-600 hover:bg-indigo-100 px-4 py-2 rounded-xl font-medium transition">↻ Refresh</button>
+          <button onclick="loadTickets()" class="nav-link" style="color:var(--accent);background:rgba(99,102,241,0.1);border:1px solid rgba(99,102,241,0.2);">↻ Refresh</button>
         </div>
       </div>
       <div id="ticketsList" class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3"></div>
     </div>
 
-    <!-- CREATE PAGE -->
-    <div id="createPage" class="hidden fade max-w-xl mx-auto">
-      <div class="card p-8">
+    <!-- ── CREATE PAGE ── -->
+    <div id="createPage" class="hidden fade" style="max-width:520px;margin:0 auto;">
+      <div class="glass p-8">
         <div class="mb-6">
-          <h2 class="text-xl font-bold text-gray-800">📝 New Support Ticket</h2>
-          <p class="text-sm text-gray-400 mt-1">Describe your IT issue — AI will categorize &amp; respond automatically</p>
+          <h2 class="font-display text-xl font-700 text-white">New Ticket</h2>
+          <p style="font-size:0.8rem;color:var(--muted);margin-top:0.25rem;">AI will auto-categorize, prioritize & respond</p>
         </div>
-        <div class="bg-indigo-50 border border-indigo-100 rounded-xl px-4 py-3 mb-5 flex items-center gap-3">
-          <div class="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center text-indigo-600 font-bold text-sm">👤</div>
+
+        <!-- Submitting as -->
+        <div class="flex items-center gap-3 mb-6 p-3 rounded-xl" style="background:rgba(99,102,241,0.08);border:1px solid rgba(99,102,241,0.2);">
+          <div class="w-8 h-8 rounded-lg flex items-center justify-center text-sm" style="background:rgba(99,102,241,0.2);">👤</div>
           <div>
-            <p class="text-xs text-indigo-400 font-medium">Submitting as</p>
-            <p id="submitAsName" class="text-sm font-semibold text-indigo-700"></p>
+            <p style="font-size:0.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;font-weight:600;">Submitting as</p>
+            <p id="submitAsName" style="font-size:0.875rem;font-weight:600;color:#a5b4fc;font-family:'Syne',sans-serif;"></p>
           </div>
         </div>
-        <label class="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">Describe Your Issue *</label>
-          <input id="empEmail" type="email" placeholder="Your Email (notification will be sent here)"
-                 class="w-full border rounded-xl px-4 py-3 mb-3 focus:outline-none focus:ring-2 focus:ring-blue-400"/>
-        <textarea id="issueText" rows="5" placeholder="e.g. My laptop screen is flickering and sometimes goes black..."
-          class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm resize-none transition mb-5"></textarea>
-        <button onclick="createTicket()" id="createBtn" class="w-full btn-p py-3.5 rounded-xl font-semibold transition text-sm">
-          🚀 Submit Ticket (AI will process it)
-        </button>
+
+        <div class="space-y-4">
+          <div>
+            <span class="label">Your Email *</span>
+            <input id="empEmail" type="email" placeholder="you@company.com" class="input"/>
+          </div>
+          <div>
+            <span class="label">Describe Your Issue *</span>
+            <textarea id="issueText" rows="5" placeholder="e.g. My laptop screen is flickering and goes black randomly..."
+              class="input" style="resize:none;"></textarea>
+          </div>
+          <button onclick="createTicket()" id="createBtn" class="btn-primary">
+            🚀 Submit Ticket — AI Will Process It
+          </button>
+        </div>
         <div id="createMsg" class="mt-3 text-center text-sm"></div>
       </div>
     </div>
 
-    <!-- CHAT PAGE -->
+    <!-- ── CHAT PAGE ── -->
     <div id="chatPage" class="hidden fade">
-      <div class="card flex flex-col" style="height:calc(100vh - 160px)">
-        <div class="flex items-center gap-3 px-5 py-4 border-b">
-          <div class="w-9 h-9 rounded-xl flex items-center justify-center" style="background:var(--brand-light)">🤖</div>
+      <div class="glass flex flex-col" style="height:calc(100vh - 160px);">
+        <!-- Chat header -->
+        <div class="flex items-center gap-3 px-5 py-4" style="border-bottom:1px solid var(--border);">
+          <div class="w-10 h-10 rounded-xl flex items-center justify-center text-lg" style="background:linear-gradient(135deg,rgba(99,102,241,0.2),rgba(139,92,246,0.2));border:1px solid rgba(99,102,241,0.3);">🤖</div>
           <div>
-            <p class="font-semibold text-gray-800 text-sm">AI Support Assistant</p>
-            <p class="text-xs text-green-500 font-medium">● Online</p>
+            <p class="font-display font-600 text-white text-sm">AI Support Assistant</p>
+            <p style="font-size:0.7rem;color:#6ee7b7;font-weight:600;">● Online</p>
+          </div>
+          <div class="ml-auto flex items-center gap-2">
+            <span style="font-size:0.65rem;color:var(--muted);background:rgba(255,255,255,0.04);padding:0.25rem 0.625rem;border-radius:999px;border:1px solid var(--border);">MCP Enabled</span>
+            <span style="font-size:0.65rem;color:var(--accent3);background:rgba(6,182,212,0.1);padding:0.25rem 0.625rem;border-radius:999px;border:1px solid rgba(6,182,212,0.2);">LLaMA 3.3</span>
           </div>
         </div>
-        <div id="chatMessages" class="flex-1 overflow-y-auto p-5 space-y-3">
+
+        <!-- Messages -->
+        <div id="chatMessages" class="flex-1 overflow-y-auto p-5 space-y-4">
           <div class="flex justify-start">
-            <div class="max-w-sm px-4 py-3 rounded-2xl text-sm bg-slate-100 text-gray-800 rounded-bl-none">
-              👋 Hi! I'm your IT support assistant. Describe your issue and I'll help you troubleshoot it.
+            <div class="bubble-bot px-4 py-3 text-sm max-w-sm">
+              👋 Hi! I'm your AI support assistant powered by LLaMA 3.3. Describe your issue and I'll help troubleshoot it — or I can create a ticket for you automatically!
             </div>
           </div>
         </div>
-        <div class="px-4 py-3 border-t flex gap-2">
-          <input id="chatInput" type="text" placeholder="Ask about your IT issue..."
-            class="flex-1 border border-gray-200 rounded-xl px-4 py-2.5 text-sm transition"
+
+        <!-- Input -->
+        <div class="px-4 py-3 flex gap-2" style="border-top:1px solid var(--border);">
+          <input id="chatInput" type="text" placeholder="Ask anything about your IT issue..."
+            class="input" style="flex:1;"
             onkeydown="if(event.key==='Enter') sendChat()"/>
-          <button onclick="sendChat()" class="btn-p px-5 py-2.5 rounded-xl font-medium text-sm transition">Send</button>
+          <button onclick="sendChat()" class="btn-primary" style="width:auto;padding:0.625rem 1.25rem;border-radius:0.75rem;">Send →</button>
         </div>
       </div>
     </div>
 
-    <!-- DASHBOARD PAGE -->
+    <!-- ── DASHBOARD PAGE ── -->
     <div id="dashboardPage" class="hidden fade">
-      <div class="flex justify-between items-center mb-5">
+      <div class="flex justify-between items-center mb-6">
         <div>
-          <h2 class="text-xl font-bold text-gray-800">📊 Admin Dashboard</h2>
-          <p class="text-sm text-gray-400 mt-0.5">Overview of all helpdesk activity</p>
+          <h2 class="font-display text-xl font-700 text-white">Admin Dashboard</h2>
+          <p style="font-size:0.8rem;color:var(--muted);margin-top:0.25rem;">Overview of all helpdesk activity</p>
         </div>
-        <button onclick="loadDashboard()" class="text-sm bg-indigo-50 text-indigo-600 hover:bg-indigo-100 px-4 py-2 rounded-xl font-medium transition">↻ Refresh</button>
+        <button onclick="loadDashboard()" class="nav-link" style="color:var(--accent);background:rgba(99,102,241,0.1);border:1px solid rgba(99,102,241,0.2);">↻ Refresh</button>
       </div>
+
+      <!-- Stat cards -->
       <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <div class="rounded-2xl p-5 text-white" style="background:linear-gradient(135deg,#4f46e5,#3730a3)">
-          <p class="text-white/70 text-xs font-medium uppercase tracking-wide">Total Tickets</p>
-          <p id="statTotal" class="text-3xl font-bold mt-1">—</p>
+        <div class="glass p-5 stat-glow" style="background:linear-gradient(135deg,rgba(99,102,241,0.15),rgba(139,92,246,0.15));">
+          <p style="font-size:0.65rem;color:#a5b4fc;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;font-family:'Syne',sans-serif;">Total Tickets</p>
+          <p id="statTotal" class="font-display text-4xl font-800 text-white mt-2">—</p>
         </div>
-        <div class="bg-red-50 border border-red-100 rounded-2xl p-5">
-          <p class="text-red-400 text-xs font-medium uppercase tracking-wide">Open</p>
-          <p id="statOpen" class="text-3xl font-bold text-red-600 mt-1">—</p>
+        <div class="glass p-5" style="border-color:rgba(239,68,68,0.2);">
+          <p style="font-size:0.65rem;color:#fca5a5;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;font-family:'Syne',sans-serif;">Open</p>
+          <p id="statOpen" class="font-display text-4xl font-800 mt-2" style="color:#fca5a5;">—</p>
         </div>
-        <div class="bg-amber-50 border border-amber-100 rounded-2xl p-5">
-          <p class="text-amber-400 text-xs font-medium uppercase tracking-wide">In Progress</p>
-          <p id="statInProgress" class="text-3xl font-bold text-amber-600 mt-1">—</p>
+        <div class="glass p-5" style="border-color:rgba(245,158,11,0.2);">
+          <p style="font-size:0.65rem;color:#fcd34d;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;font-family:'Syne',sans-serif;">In Progress</p>
+          <p id="statInProgress" class="font-display text-4xl font-800 mt-2" style="color:#fcd34d;">—</p>
         </div>
-        <div class="bg-green-50 border border-green-100 rounded-2xl p-5">
-          <p class="text-green-400 text-xs font-medium uppercase tracking-wide">Resolved</p>
-          <p id="statResolved" class="text-3xl font-bold text-green-600 mt-1">—</p>
-        </div>
-      </div>
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
-        <div class="card p-5">
-          <h3 class="font-semibold text-gray-700 text-sm mb-4">By Status</h3>
-          <div class="flex justify-center"><canvas id="statusChart" width="200" height="200"></canvas></div>
-        </div>
-        <div class="card p-5">
-          <h3 class="font-semibold text-gray-700 text-sm mb-4">By Category</h3>
-          <div class="flex justify-center"><canvas id="categoryChart" width="200" height="200"></canvas></div>
-        </div>
-        <div class="card p-5">
-          <h3 class="font-semibold text-gray-700 text-sm mb-4">By Priority</h3>
-          <div class="flex justify-center"><canvas id="priorityChart" width="200" height="200"></canvas></div>
+        <div class="glass p-5" style="border-color:rgba(16,185,129,0.2);">
+          <p style="font-size:0.65rem;color:#6ee7b7;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;font-family:'Syne',sans-serif;">Resolved</p>
+          <p id="statResolved" class="font-display text-4xl font-800 mt-2" style="color:#6ee7b7;">—</p>
         </div>
       </div>
-      <div class="card p-5">
-        <h3 class="font-semibold text-gray-700 text-sm mb-4">Tickets per Employee</h3>
+
+      <!-- Charts -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
+        <div class="glass p-5">
+          <h3 class="font-display font-600 text-white text-sm mb-4">By Status</h3>
+          <div class="flex justify-center"><canvas id="statusChart" width="180" height="180"></canvas></div>
+        </div>
+        <div class="glass p-5">
+          <h3 class="font-display font-600 text-white text-sm mb-4">By Category</h3>
+          <div class="flex justify-center"><canvas id="categoryChart" width="180" height="180"></canvas></div>
+        </div>
+        <div class="glass p-5">
+          <h3 class="font-display font-600 text-white text-sm mb-4">By Priority</h3>
+          <div class="flex justify-center"><canvas id="priorityChart" width="180" height="180"></canvas></div>
+        </div>
+      </div>
+
+      <!-- Employee table -->
+      <div class="glass p-5">
+        <h3 class="font-display font-600 text-white text-sm mb-4">Tickets per Employee</h3>
         <div id="employeeTable"></div>
       </div>
     </div>
@@ -228,15 +485,21 @@
   </div>
 </div>
 
-<!-- MODAL -->
-<div id="ticketModal" class="hidden fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-  <div class="card w-full max-w-lg p-7 fade relative max-h-screen overflow-y-auto">
-    <button onclick="closeModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-xl">✕</button>
-    <h3 class="font-bold text-gray-800 text-lg mb-4">Ticket Details</h3>
+<!-- ══════════════════════════════════════════════════
+     MODAL
+══════════════════════════════════════════════════ -->
+<div id="ticketModal" class="hidden fixed inset-0 modal-overlay z-50 flex items-center justify-center p-4">
+  <div class="glass w-full max-w-lg p-7 fade relative" style="max-height:90vh;overflow-y:auto;">
+    <button onclick="closeModal()" class="absolute top-4 right-4 w-8 h-8 rounded-lg flex items-center justify-center text-sm transition"
+      style="color:var(--muted);background:rgba(255,255,255,0.05);border:1px solid var(--border);">✕</button>
+    <h3 class="font-display font-700 text-white text-lg mb-5">Ticket Details</h3>
     <div id="modalContent"></div>
   </div>
 </div>
 
+<!-- ══════════════════════════════════════════════════
+     JAVASCRIPT (all logic preserved)
+══════════════════════════════════════════════════ -->
 <script>
 const API = 'http://localhost:9090';
 let token='', userRole='', userName='';
@@ -249,11 +512,11 @@ function showTab(tab){
   document.getElementById('loginForm').classList.toggle('hidden',!isL);
   document.getElementById('registerForm').classList.toggle('hidden',isL);
   document.getElementById('loginTab').className=isL
-    ?'flex-1 py-2.5 rounded-lg text-sm font-semibold transition bg-white shadow text-indigo-600'
-    :'flex-1 py-2.5 rounded-lg text-sm font-semibold transition text-gray-400';
+    ?'flex-1 py-2 rounded-lg text-sm font-semibold transition tab-active border font-display'
+    :'flex-1 py-2 rounded-lg text-sm font-semibold transition tab-inactive border border-transparent font-display';
   document.getElementById('registerTab').className=!isL
-    ?'flex-1 py-2.5 rounded-lg text-sm font-semibold transition bg-white shadow text-indigo-600'
-    :'flex-1 py-2.5 rounded-lg text-sm font-semibold transition text-gray-400';
+    ?'flex-1 py-2 rounded-lg text-sm font-semibold transition tab-active border font-display'
+    :'flex-1 py-2 rounded-lg text-sm font-semibold transition tab-inactive border border-transparent font-display';
 }
 
 async function login(){
@@ -272,7 +535,7 @@ async function login(){
     token=data;
     const payload=JSON.parse(atob(token.split('.')[1]));
     userRole=payload.role; userName=payload.sub;
-    document.getElementById('navUser').textContent=`👤 ${userName} · ${userRole.replace('ROLE_','')}`;
+    document.getElementById('navUser').textContent=`${userName} · ${userRole.replace('ROLE_','')}`;
     document.getElementById('submitAsName').textContent=userName;
     document.getElementById('navDashboard').classList.toggle('hidden',userRole!=='ROLE_ADMIN');
     document.getElementById('authPage').classList.add('hidden');
@@ -307,7 +570,9 @@ function logout(){
 }
 function showAuthMsg(msg,color){
   const el=document.getElementById('authMsg');
-  el.textContent=msg; el.className=`mt-4 text-center text-sm text-${color}-600`;
+  el.textContent=msg;
+  const colors={red:'#fca5a5',green:'#6ee7b7',indigo:'#a5b4fc'};
+  el.style.color=colors[color]||colors.red;
 }
 
 // ── NAV ───────────────────────────────────────
@@ -316,7 +581,8 @@ function showPage(page){
     document.getElementById(p+'Page').classList.toggle('hidden',p!==page);
   });
   ['navTickets','navCreate','navChat','navDashboard'].forEach(id=>{
-    document.getElementById(id)?.classList.remove('active');
+    const el=document.getElementById(id);
+    if(el) el.classList.remove('active');
   });
   const map={tickets:'navTickets',create:'navCreate',chat:'navChat',dashboard:'navDashboard'};
   document.getElementById(map[page])?.classList.add('active');
@@ -326,17 +592,16 @@ function showPage(page){
 // ── TICKETS ───────────────────────────────────
 async function loadTickets(){
   const list=document.getElementById('ticketsList');
-  list.innerHTML=`<div class="skeleton h-28 rounded-2xl"></div>`.repeat(6);
+  list.innerHTML=`<div class="skeleton h-32"></div>`.repeat(6);
   try{
     const res=await fetch(`${API}/api/tickets`,{headers:{'Authorization':`Bearer ${token}`}});
     allTickets=await res.json();
-    const sub=document.getElementById('ticketSubtitle');
-    sub.textContent=userRole==='ROLE_ADMIN'
+    document.getElementById('ticketSubtitle').textContent=userRole==='ROLE_ADMIN'
       ?`Showing all ${allTickets.length} tickets`
       :`Showing your ${allTickets.length} ticket${allTickets.length!==1?'s':''}`;
     renderTickets(allTickets);
   }catch(e){
-    list.innerHTML=`<div class="col-span-3 text-center text-red-400 py-10">Failed to load tickets.</div>`;
+    list.innerHTML=`<div class="col-span-3 text-center py-10" style="color:var(--muted);">Failed to load tickets.</div>`;
   }
 }
 
@@ -348,22 +613,23 @@ function applyFilter(){
 function renderTickets(tickets){
   const list=document.getElementById('ticketsList');
   if(!tickets.length){
-    list.innerHTML=`<div class="col-span-3 text-center text-gray-400 py-16"><div class="text-4xl mb-3">🎉</div><p>No tickets found</p></div>`;
+    list.innerHTML=`<div class="col-span-3 text-center py-16" style="color:var(--muted);"><div style="font-size:2.5rem;margin-bottom:0.75rem;">🎉</div><p>No tickets found</p></div>`;
     return;
   }
   list.innerHTML=tickets.map(t=>`
-    <div class="card p-5 cursor-pointer fade" onclick="openModal(${t.id})">
+    <div class="ticket-card p-5 fade" onclick="openModal(${t.id})">
       <div class="flex justify-between items-start mb-3">
-        <span class="text-xs font-bold text-indigo-400">#${t.id}</span>
+        <span style="font-size:0.7rem;font-weight:700;color:var(--accent);font-family:'Syne',sans-serif;letter-spacing:0.04em;">#${t.id}</span>
         <div class="flex gap-1.5">
-          <span class="text-xs px-2 py-1 rounded-full font-semibold priority-${t.priority||'LOW'}">${t.priority||'—'}</span>
-          <span class="text-xs px-2 py-1 rounded-full font-semibold status-${t.status}">${t.status}</span>
+          <span class="badge priority-${t.priority||'LOW'}">${t.priority||'—'}</span>
+          <span class="badge status-${t.status}">${t.status}</span>
         </div>
       </div>
-      <p class="text-gray-800 text-sm font-medium mb-1 line-clamp-2">${t.issue||''}</p>
-      <div class="flex items-center justify-between mt-3">
-        <span class="text-xs text-gray-400">👤 ${t.employeeName}</span>
-        <span class="text-xs bg-indigo-50 text-indigo-500 px-2 py-1 rounded-lg font-medium">${t.category||'—'}</span>
+      <p style="color:var(--text);font-size:0.875rem;font-weight:500;margin-bottom:0.5rem;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">${t.issue||''}</p>
+      <hr class="divider" style="margin:0.75rem 0;">
+      <div class="flex items-center justify-between">
+        <span style="font-size:0.75rem;color:var(--muted);">👤 ${t.employeeName}</span>
+        <span style="font-size:0.7rem;font-weight:600;color:var(--accent3);background:rgba(6,182,212,0.1);padding:0.2rem 0.6rem;border-radius:999px;border:1px solid rgba(6,182,212,0.2);">${t.category||'—'}</span>
       </div>
     </div>`).join('');
 }
@@ -372,26 +638,29 @@ async function openModal(id){
   const res=await fetch(`${API}/api/tickets/${id}`,{headers:{'Authorization':`Bearer ${token}`}});
   const t=await res.json();
   const adminBtns=userRole==='ROLE_ADMIN'?`
-    <div class="flex gap-2 mt-4">
-      ${t.status==='OPEN'?`<button onclick="updateStatus(${t.id},'IN_PROGRESS')" class="flex-1 bg-amber-500 hover:bg-amber-600 text-white py-2.5 rounded-xl text-sm font-semibold transition">→ Mark In Progress</button>`:''}
-      ${t.status==='IN_PROGRESS'?`<button onclick="updateStatus(${t.id},'RESOLVED')" class="flex-1 btn-g py-2.5 rounded-xl text-sm font-semibold transition">✓ Mark Resolved</button>`:''}
-      ${t.status==='RESOLVED'?`<p class="text-green-600 font-semibold text-sm">✅ Ticket resolved</p>`:''}
+    <div class="flex gap-2 mt-5">
+      ${t.status==='OPEN'?`<button onclick="updateStatus(${t.id},'IN_PROGRESS')" class="btn-amber flex-1">→ Mark In Progress</button>`:''}
+      ${t.status==='IN_PROGRESS'?`<button onclick="updateStatus(${t.id},'RESOLVED')" class="btn-green flex-1">✓ Mark Resolved</button>`:''}
+      ${t.status==='RESOLVED'?`<p style="color:#6ee7b7;font-size:0.875rem;font-weight:600;">✅ Ticket resolved</p>`:''}
     </div>`:'';
   document.getElementById('modalContent').innerHTML=`
-    <div class="space-y-4">
-      <div class="flex flex-wrap gap-2">
-        <span class="text-xs px-2.5 py-1 rounded-full font-semibold priority-${t.priority||'LOW'}">${t.priority||'—'}</span>
-        <span class="text-xs px-2.5 py-1 rounded-full font-semibold status-${t.status}">${t.status}</span>
-        <span class="text-xs px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-600 font-semibold">${t.category||'—'}</span>
+    <div style="display:flex;flex-direction:column;gap:1rem;">
+      <div style="display:flex;flex-wrap:wrap;gap:0.5rem;">
+        <span class="badge priority-${t.priority||'LOW'}">${t.priority||'—'}</span>
+        <span class="badge status-${t.status}">${t.status}</span>
+        <span class="badge" style="background:rgba(6,182,212,0.1);color:#67e8f9;border:1px solid rgba(6,182,212,0.25);">${t.category||'—'}</span>
       </div>
-      <div class="grid grid-cols-2 gap-3 text-sm">
-        <div><p class="text-xs text-gray-400 mb-0.5">Employee</p><p class="font-semibold text-gray-800">${t.employeeName}</p></div>
-        <div><p class="text-xs text-gray-400 mb-0.5">Ticket #</p><p class="font-semibold text-gray-800">${t.id}</p></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;">
+        <div><span class="label">Employee</span><p style="font-weight:600;color:var(--text);font-size:0.875rem;">${t.employeeName}</p></div>
+        <div><span class="label">Ticket ID</span><p style="font-weight:600;color:var(--accent);font-size:0.875rem;font-family:'Syne',sans-serif;">#${t.id}</p></div>
       </div>
-      <div><p class="text-xs text-gray-400 mb-1">Issue</p><p class="text-gray-700 text-sm bg-gray-50 rounded-xl p-3">${t.issue||''}</p></div>
-      <div class="bg-indigo-50 rounded-xl p-4">
-        <p class="text-xs text-indigo-400 font-semibold mb-1">🤖 AI Response</p>
-        <p class="text-gray-700 text-sm leading-relaxed">${t.response||'No response generated.'}</p>
+      <div>
+        <span class="label">Issue</span>
+        <p style="color:var(--text);font-size:0.875rem;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:0.75rem;padding:0.875rem;line-height:1.6;">${t.issue||''}</p>
+      </div>
+      <div style="background:rgba(99,102,241,0.08);border:1px solid rgba(99,102,241,0.2);border-radius:0.875rem;padding:1rem;">
+        <p style="font-size:0.65rem;color:#a5b4fc;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:0.5rem;font-family:'Syne',sans-serif;">🤖 AI Response</p>
+        <p style="color:var(--text);font-size:0.875rem;line-height:1.7;">${t.response||'No response generated.'}</p>
       </div>
       ${adminBtns}
     </div>`;
@@ -412,39 +681,37 @@ async function updateStatus(id,status){
 
 // ── CREATE ────────────────────────────────────
 async function createTicket(){
-  const issue = document.getElementById('issueText').value.trim();
-  const employeeEmail = document.getElementById('empEmail').value.trim();
+  const issue=document.getElementById('issueText').value.trim();
+  const employeeEmail=document.getElementById('empEmail').value.trim();
   if(!issue) return showCreateMsg('Please describe your issue','red');
   if(!employeeEmail) return showCreateMsg('Please enter your email','red');
-  const btn = document.getElementById('createBtn');
+  const btn=document.getElementById('createBtn');
   btn.textContent='🤖 AI is processing...'; btn.disabled=true;
   showCreateMsg('Sending to AI — this may take a few seconds...','indigo');
   try{
-    const res = await fetch(`${API}/api/tickets`,{
+    const res=await fetch(`${API}/api/tickets`,{
       method:'POST',
       headers:{'Authorization':`Bearer ${token}`,'Content-Type':'application/json'},
-      body: JSON.stringify({
-        issue,
-        employeeEmail,
-        employeeName: userName, // ✅ use logged-in username from JWT
-        status:'OPEN'
-      })
+      body:JSON.stringify({issue,employeeEmail,employeeName:userName,status:'OPEN'})
     });
     if(res.ok){
       showCreateMsg('✅ Ticket created! AI has responded.','green');
       document.getElementById('issueText').value='';
       document.getElementById('empEmail').value='';
       setTimeout(()=>{showPage('tickets');loadTickets();},1800);
-    } else {
+    }else{
       const err=await res.text();
       showCreateMsg(err||'Failed to create ticket','red');
     }
   }catch(e){showCreateMsg('Connection error','red');}
-  finally{btn.textContent='🚀 Submit Ticket (AI will process it)';btn.disabled=false;}
+  finally{btn.textContent='🚀 Submit Ticket — AI Will Process It';btn.disabled=false;}
 }
 function showCreateMsg(msg,color){
   const el=document.getElementById('createMsg');
-  el.textContent=msg; el.className=`mt-3 text-center text-sm text-${color}-600`;
+  el.textContent=msg;
+  const colors={red:'#fca5a5',green:'#6ee7b7',indigo:'#a5b4fc'};
+  el.style.color=colors[color]||colors.red;
+  el.style.fontSize='0.8rem';
 }
 
 // ── CHAT ──────────────────────────────────────
@@ -462,26 +729,26 @@ async function sendChat(){
     });
     const data=await res.json();
     document.getElementById(lid)?.remove();
-    if(data.data && data.data.response){
-    addChatBubble('✅ Ticket created! Here is your solution:','bot');
-    addChatBubble(data.data.response,'bot');
-}else{
-    addChatBubble(data.reply||'No response','bot');
-}
+    if(data.data&&data.data.response){
+      addChatBubble('✅ Ticket created! Here is your solution:','bot');
+      addChatBubble(data.data.response,'bot');
+    }else{
+      addChatBubble(data.reply||'No response','bot');
+    }
   }catch(e){
     document.getElementById(lid)?.remove();
     addChatBubble('⚠️ Connection error.','bot');
   }
 }
 function addChatBubble(text,type,loading=false){
-  const id='bubble-'+Date.now()+Math.random();
+  const id='b-'+Date.now()+Math.random();
   const msgs=document.getElementById('chatMessages');
   const div=document.createElement('div');
-  div.id=id; div.className=`flex ${type==='user'?'justify-end':'justify-start'}`;
-  div.innerHTML=`<div class="max-w-xs lg:max-w-md px-4 py-2.5 rounded-2xl text-sm ${
-    type==='user'?'bg-indigo-600 text-white rounded-br-none':'bg-slate-100 text-gray-800 rounded-bl-none'
-  } ${loading?'animate-pulse':''}">${text}</div>`;
-  msgs.appendChild(div); msgs.scrollTop=msgs.scrollHeight;
+  div.id=id;
+  div.className=`flex ${type==='user'?'justify-end':'justify-start'}`;
+  div.innerHTML=`<div class="${type==='user'?'bubble-user':'bubble-bot'} px-4 py-3 text-sm max-w-xs lg:max-w-md" style="${loading?'opacity:0.6;':''}">${text}</div>`;
+  msgs.appendChild(div);
+  msgs.scrollTop=msgs.scrollHeight;
   return id;
 }
 
@@ -495,44 +762,39 @@ async function loadDashboard(){
 }
 
 function renderDashboard(stats){
-  document.getElementById('statTotal').textContent = stats.total ?? 0;
+  document.getElementById('statTotal').textContent=stats.total??0;
   document.getElementById('statOpen').textContent=stats.byStatus?.OPEN??0;
   document.getElementById('statInProgress').textContent=stats.byStatus?.IN_PROGRESS??0;
   document.getElementById('statResolved').textContent=stats.byStatus?.RESOLVED??0;
 
   Object.values(charts).forEach(c=>c.destroy()); charts={};
 
+  Chart.defaults.color='#64748b';
+
   const donut=(labels,data,colors)=>({
     type:'doughnut',
-    data:{labels,datasets:[{data,backgroundColor:colors,borderWidth:2,borderColor:'#fff'}]},
-    options:{plugins:{legend:{position:'bottom',labels:{font:{size:11},padding:12}}},cutout:'60%',responsive:false}
+    data:{labels,datasets:[{data,backgroundColor:colors,borderWidth:0}]},
+    options:{plugins:{legend:{position:'bottom',labels:{font:{size:10,family:'DM Sans'},padding:10,color:'#94a3b8',boxWidth:10}}},cutout:'65%',responsive:false}
   });
 
-  const sLabels=Object.keys(stats.byStatus||{});
-  charts.status=new Chart(document.getElementById('statusChart'),donut(
-    sLabels,Object.values(stats.byStatus||{}),
-    sLabels.map(s=>s==='OPEN'?'#fca5a5':s==='IN_PROGRESS'?'#fcd34d':'#86efac')
-  ));
-  const cLabels=Object.keys(stats.byCategory||{});
-  charts.category=new Chart(document.getElementById('categoryChart'),donut(
-    cLabels,Object.values(stats.byCategory||{}),['#818cf8','#60a5fa','#34d399','#f472b6','#fb923c']
-  ));
-  const pLabels=Object.keys(stats.byPriority||{});
-  charts.priority=new Chart(document.getElementById('priorityChart'),donut(
-    pLabels,Object.values(stats.byPriority||{}),['#fca5a5','#fcd34d','#86efac']
-  ));
+  const sL=Object.keys(stats.byStatus||{});
+  charts.status=new Chart(document.getElementById('statusChart'),donut(sL,Object.values(stats.byStatus||{}),sL.map(s=>s==='OPEN'?'#fca5a5':s==='IN_PROGRESS'?'#fcd34d':'#6ee7b7')));
+  const cL=Object.keys(stats.byCategory||{});
+  charts.category=new Chart(document.getElementById('categoryChart'),donut(cL,Object.values(stats.byCategory||{}),['#818cf8','#60a5fa','#34d399','#f472b6','#fb923c']));
+  const pL=Object.keys(stats.byPriority||{});
+  charts.priority=new Chart(document.getElementById('priorityChart'),donut(pL,Object.values(stats.byPriority||{}),['#fca5a5','#fcd34d','#6ee7b7']));
 
   const rows=Object.entries(stats.byEmployee||{}).sort((a,b)=>b[1]-a[1]);
   const maxVal=rows[0]?.[1]||1;
   document.getElementById('employeeTable').innerHTML=rows.length===0
-    ?'<p class="text-gray-400 text-sm">No data yet</p>'
+    ?`<p style="color:var(--muted);font-size:0.875rem;">No data yet</p>`
     :rows.map(([name,count])=>`
-      <div class="flex items-center gap-3 mb-3">
-        <div class="w-28 text-sm font-medium text-gray-700 truncate">${name}</div>
-        <div class="flex-1 bg-gray-100 rounded-full h-2.5 overflow-hidden">
-          <div class="h-full rounded-full" style="width:${Math.round(count/maxVal*100)}%;background:#4f46e5"></div>
+      <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.875rem;">
+        <div style="width:7rem;font-size:0.8rem;font-weight:500;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${name}</div>
+        <div style="flex:1;background:rgba(255,255,255,0.05);border-radius:999px;height:6px;overflow:hidden;">
+          <div style="width:${Math.round(count/maxVal*100)}%;height:100%;border-radius:999px;background:linear-gradient(90deg,var(--accent),var(--accent2));"></div>
         </div>
-        <div class="text-sm font-bold text-gray-700 w-6 text-right">${count}</div>
+        <div style="font-size:0.8rem;font-weight:700;color:var(--accent);width:1.5rem;text-align:right;font-family:'Syne',sans-serif;">${count}</div>
       </div>`).join('');
 }
 
